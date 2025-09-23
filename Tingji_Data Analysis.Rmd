@@ -1,0 +1,86 @@
+---
+title: "Data Analysis - MSSP Group C2 Fall 2025"
+author: "Tingji"
+date: "2025-09-23"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+set.seed(42)
+``` 
+
+
+
+## Purpose and Dataset
+
+We will look:
+
+- How one should approach a dataset
+- What are the steps followed in analyzing a dataset
+
+Goal. Explore the AirQuality dataset (hourly averages, March 2004–Feb 2005) to:
+
+- understand structure & quality,
+- handle missing values,
+- do basic EDA (trends, correlations, drift),
+- build a simple model for a target variable (e.g., CO).
+
+
+#### Why these steps?
+
+Good analysis = (1) clean data → (2) understand patterns → (3) model carefully. Each step documents decisions so results are reproducible and defensible.
+
+### Libraries and Project Setup
+
+Use this space to install and store all the packages.
+
+```{r packages, echo=TRUE, message=FALSE}
+# Install once if needed and comment it out
+# install.packages(c("tidyverse","dplyr", GGally", "ggplot2"))
+library(tidyverse)
+library(dplyr)
+library(GGally) 
+library(ggplot2)
+```
+
+### Import Data
+
+Read the DataDescription.txt and note important information. Read it thoroughly!
+
+
+```{r}
+air_raw <- read.csv("AirQualityData.csv",sep = ";",header = TRUE)
+summary(air_raw) 
+
+names(air_raw)
+head(air_raw)
+air <- air_raw
+#check how many values in Ground CO is missing
+length(which(air_raw$CO.GT. == -200))
+
+air[air == -200] <- NA
+
+ggplot(air,aes(x = Date,y = PT08.S1.CO.)) +
+  geom_point()
+
+air <- air %>% 
+  rename(GroundCO = CO.GT.,SensorCO = PT08.S1.CO.)
+
+ggplot(air,aes(x = GroundCO)) +
+  geom_histogram()
+```
+
+#missing value change to median repalce
+#box plot for numerical variables and see outliers
+
+
+
+
+
+
+
+
+
+
+
