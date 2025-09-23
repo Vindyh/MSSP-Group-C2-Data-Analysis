@@ -1,13 +1,14 @@
 ---
 title: "Data Analysis - MSSP Group C2 Fall 2025"
-author: "Your Name"
+author: "Yuan Wang"
 date: "2025-09-23"
 output: html_document
 ---
 
 ```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-set.seed(42)
+set.seed(42)'
+library(dplyr)
 ``` 
 
 ## Purpose and Dataset
@@ -45,3 +46,27 @@ library(ggplot2)
 ### Import Data
 
 Read the DataDescription.txt and note important information. Read it thoroughly!
+
+```{r}
+df <- read_delim("AirQualityData.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+summary(df)
+```
+```{r}
+colnames(df)[3] <- "GroundCO"
+df
+```
+```{r}
+#replace all missing values with median
+#get boxplots for each of the variables and the best case if you get side by side box plots
+med <- median(df$GroundCO, na.rm = FALSE)
+med
+is.na(df)
+```
+
+
+
+
+
+
