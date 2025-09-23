@@ -1,0 +1,68 @@
+---
+title: "Data Analysis - MSSP Group C2 Fall 2025"
+author: "Madeleine Livaudais"
+date: "2025-09-23"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+set.seed(42)
+``` 
+
+## Purpose and Dataset
+
+We will look:
+
+- How one should approach a dataset
+- What are the steps followed in analyzing a dataset
+
+Goal. Explore the AirQuality dataset (hourly averages, March 2004–Feb 2005) to:
+
+- understand structure & quality,
+- handle missing values,
+- do basic EDA (trends, correlations, drift),
+- build a simple model for a target variable (e.g., CO).
+
+
+#### Why these steps?
+
+Good analysis = (1) clean data → (2) understand patterns → (3) model carefully. Each step documents decisions so results are reproducible and defensible.
+
+### Libraries and Project Setup
+
+Use this space to install and store all the packages.
+
+```{r packages, echo=TRUE, message=FALSE}
+# Install once if needed and comment it out
+# install.packages(c("tidyverse","dplyr", GGally", "ggplot2"))
+library(tidyverse)
+library(dplyr)
+library(GGally) 
+library(ggplot2)
+```
+
+### Import Data
+
+Read the DataDescription.txt and note important information. Read it thoroughly!
+
+```{r}
+aq_raw <- read.csv("AirQualityData.csv", sep = ";")
+aq_data <- aq_raw
+
+#Look at the data
+head(aq_data)
+str(aq_data)
+summary(aq_data)
+
+#Replace missing values with NA's
+aq_data[aq_data == -200] <- NA
+
+# Rename a single column by its position (e.g., the second column)
+names(aq_data)[3] <- "GroundCO"
+names(aq_data)[4] <- "SensorCO"
+
+hist(aq_data$GroundCO)
+
+```
+
