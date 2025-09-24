@@ -38,6 +38,7 @@ Use this space to install and store all the packages.
 ```{r packages, echo=TRUE, message=FALSE}
 # Install once if needed and comment it out
 # install.packages(c("tidyverse","dplyr", GGally", "ggplot2"))
+library(corrplot)
 library(tidyverse)
 library(dplyr)
 library(GGally) 
@@ -56,6 +57,10 @@ summary(air_raw)
 names(air_raw)
 head(air_raw)
 air <- air_raw
+```
+
+#Change the missing data from -200 to NA to median value
+```{r}
 #check how many values in Ground CO is missing
 length(which(air_raw$CO.GT. == -200))
 
@@ -68,12 +73,48 @@ air <- air %>%
   rename(GroundCO = CO.GT.,SensorCO = PT08.S1.CO.)
 
 ggplot(air,aes(x = GroundCO)) +
-  geom_histogram()
-```
+  geom_histogram(bins = 30) +
+  labs(title = "GroundCO remove -200 value")
+#the distribution is screwed, so use median to replace NA
+
 
 #missing value change to median repalce
-#box plot for numerical variables and see outliers
+#median(air$GroundCO, na.rm = TRUE)
+for (i in 3:15){
+  m = median(air[,i], na.rm = TRUE)
+  air[,i][is.na(air[,i])] = m
+}
+#from dplyr
+# air <- air %>%
+#   mutate(across(3:15, ~ ifelse(is.na(.), median(., na.rm = TRUE), .)))
+ggplot(air,aes(x = GroundCO)) +
+  geom_histogram(bins = 30) +
+  labs(title = "GroundCO after change NA to Median value")
+```
 
+#boxplot for every element
+```{r}
+#box plot for numerical variables and see outliers
+air_long <- pivot_longer(air[, 3:15], cols = everything(),
+                         names_to = "Variable", values_to = "Value")
+
+ggplot(air_long, aes(x = Variable, y = Value)) +
+  geom_boxplot(outlier.colour = "red") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+#correlation heatmap
+```{r}
+# 先算相关矩阵
+corr_matrix <- cor(air[, 3:15], use = "complete.obs")
+
+# 画图
+corrplot(corr_matrix,
+         method = "color",     # 用颜色表示
+         tl.col = "black",     # 标签颜色
+         tl.srt = 45)          # 标签旋转角度
+```
 
 
 
