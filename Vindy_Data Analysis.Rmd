@@ -45,3 +45,70 @@ library(ggplot2)
 ### Import Data
 
 Read the DataDescription.txt and note important information. Read it thoroughly!
+
+
+```{r}
+aq_raw <- read.csv("AirQualityData.csv", sep = ";")
+```
+
+
+```{r}
+# Keep an unmodified copy for reference
+aq_data <- aq_raw
+
+# Peek at data & names
+names(aq_data)
+head(aq_data)
+str(aq_data)
+```
+This lets us check column names and types early to catch any import issues (e.g., numbers read as text).
+
+## Initial Quality Checks
+
+#### Summary and missing value encoding
+
+We observed that missing values are encoded as `-200`.  
+We first convert them to proper `NA`, then replace missing values with the **median of each column**.  
+
+The **median** is chosen instead of the mean because distributions are not symmetric (skewed), and the median is more robust to outliers.
+```{r}
+# Check the summary of data
+summary(aq_data)
+
+# appears that all the NA values are coded as -200
+# Check how many values in Ground CO are -200
+length(which(aq_data$CO.GT. == -200))
+
+# Convert -200 to NA
+aq_data[aq_data == -200] <- NA
+# Note that this replaces -200 to NA across all columns in aq_data
+
+# Renaming some of the variables
+aq_data <- aq_data %>%
+  rename(GroundCO = CO.GT., SensorCO = PT08.S1.CO.)
+
+nrow(aq_data[complete.cases(aq_data), ])
+# only 827 rows with complete observations
+
+# replacing missing values with the median of each column 
+# Why median imputation?
+# - Mean is sensitive to outliers.
+# - Median is more robust when distributions are skewed.
+# - Keeps numeric scale consistent with real-world data ranges.
+
+# Example: manual replacement for one column
+aq_data$GroundCO[is.na(aq_data$GroundCO)] <- median(aq_data$GroundCO, na.rm = TRUE)
+
+# General approach: apply to all numeric columns
+num_cols <- sapply(aq_data, is.numeric)
+for (col in names(aq_data)[num_cols]) {
+  aq_data[[col]][is.na(aq_data[[col]])] <- median(aq_data[[col]], na.rm = TRUE)
+}
+
+# Check after imputation
+sum(is.na(aq_data))
+summary(aq_data$GroundCO)
+
+```
+
+## Outliers: what they are and how to handle them
