@@ -1,0 +1,95 @@
+
+---
+title: "Data Analysis - MSSP Group C2 Fall 2025"
+author: "YunBo ZHn"
+date: "2025-09-23"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+set.seed(42)
+``` 
+
+## Purpose and Dataset
+
+We will look:
+
+- How one should approach a dataset
+- What are the steps followed in analyzing a dataset
+
+Goal. Explore the AirQuality dataset (hourly averages, March 2004–Feb 2005) to:
+
+- understand structure & quality,
+- handle missing values,
+- do basic EDA (trends, correlations, drift),
+- build a simple model for a target variable (e.g., CO).
+
+
+#### Why these steps?
+
+Good analysis = (1) clean data → (2) understand patterns → (3) model carefully. Each step documents decisions so results are reproducible and defensible.
+
+### Libraries and Project Setup
+
+Use this space to install and store all the packages.
+
+```{r packages, echo=TRUE, message=FALSE}
+# Install once if needed and comment it out
+# install.packages(c("tidyverse","dplyr", GGally", "ggplot2"))
+library(tidyverse)
+library(dplyr)
+library(GGally) 
+library(ggplot2)
+```
+
+### Import Data
+
+Read the DataDescription.txt and note important information. Read it thoroughly!
+```{r }
+data <- read.csv2("C:/Users/Cikey/Desktop/AirQualityData.csv", header = TRUE)
+str(data)
+summary(data)
+data[data==-200]<-NA
+names(data)[3] <- "GroundCO"
+names(data)[4] <- "SensorCO"
+for (col in names(data)) {
+  if (is.numeric(data[[col]])) {
+    a <- median(data[[col]], na.rm = TRUE)
+    data[[col]][which(is.na(data[[col]]))] <- a
+  }
+}
+library(tidyr)
+library(ggplot2)
+library(dplyr) 
+num_cols <- names(data)[sapply(data, is.numeric)]
+long <- data %>%
+  select(all_of(num_cols)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value")
+p <- ggplot(long, aes(x = variable, y = value)) +
+  geom_boxplot(outlier.colour = "red", outlier.size = 1.5) +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Boxplots for numeric variables", x = "", y = "Value")
+
+print(p)
+colnames(data) <- c(
+  "Date","Time","CO","PT08S1_CO","NMHC","C6H6","PT08S2_NMHC",
+  "NOx","PT08S3_NOx","NO2","PT08S4_NO2","PT08S5_O3",
+  "Temperature","RelativeHumidity","AbsoluteHumidity"
+)
+num_cols <- names(data)[sapply(data, is.numeric)]
+cor_matrix <- cor(data[, num_cols], use = "complete.obs")
+print(cor_matrix)
+library(corrplot)
+corrplot(cor_matrix, method="color", addCoef.col="black", number.cex=0.7)
+
+
+
+
+
+
+
+
+```
+
