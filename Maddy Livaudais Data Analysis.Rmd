@@ -29,18 +29,19 @@ Goal. Explore the AirQuality dataset (hourly averages, March 2004–Feb 2005) to
 
 Good analysis = (1) clean data → (2) understand patterns → (3) model carefully. Each step documents decisions so results are reproducible and defensible.
 
+
 ### Libraries and Project Setup
 
 Use this space to install and store all the packages.
 
 ```{r packages, echo=TRUE, message=FALSE}
-# Install once if needed and comment it out
-# install.packages(c("tidyverse","dplyr", GGally", "ggplot2"))
 library(tidyverse)
 library(dplyr)
 library(GGally) 
 library(ggplot2)
+library(corrplot)
 ```
+
 
 ### Import Data
 
@@ -54,15 +55,67 @@ aq_data <- aq_raw
 head(aq_data)
 str(aq_data)
 summary(aq_data)
+```
 
-#Replace missing values with NA's
+Deal with the missing values, rename some columns. 
+```{r}
+#Replace missing values with NA's, since we were told -200 is a missing value
 aq_data[aq_data == -200] <- NA
+aq_data
 
-# Rename a single column by its position (e.g., the second column)
+#Compare new summary 
+summary(aq_data)
+
+#Rename a single column by its position
 names(aq_data)[3] <- "GroundCO"
 names(aq_data)[4] <- "SensorCO"
+```
 
-hist(aq_data$GroundCO)
+Start to look at the data and decide what to do with the NA's 
+```{r}
+#Look at a histogram of one column's data
+hist(aq_data$GroundCO, xlab = "Ground CO", ylab = "Frequency")
 
+#Replace the NA's with the median of the column as an approximate for what it could be.
+#Choosing median becuase the histogram was skewed.
+aq_data <- aq_data %>%
+  mutate(across(where(is.numeric), ~replace_na(., median(., na.rm = TRUE))))
+
+#check again
+aq_data
+summary(aq_data)
+
+```
+
+Graph the data as side by side Box-plots
+```{r}
+#Side-by-side boxplots of the data
+numeric_aq_data <- aq_data[, sapply(aq_data, is.numeric)]
+
+# Reshape the data from wide to long format
+aq_df_long <- numeric_aq_data %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value")
+
+#Make the boxplots
+ggplot(aq_df_long, aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot() +
+  labs(title = "Side-by-Side Boxplots", x = "Variable", y = "Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip() + # Makes the boxplots horizontal
+  theme(legend.position = "none") # Removes the legend
+
+
+```
+
+
+Find the correlation matrix between the variables and graph. 
+```{r}
+#Correlation Matrix
+cor_matrix <- cor(numeric_aq_data)
+print(cor_matrix)
+
+#Grpah Correlation Matrix
+corrplot(cor_matrix, method = "color", type = "lower", tl.cex = 1, tl.col = "black", tl.offset = 0.6)
 ```
 
