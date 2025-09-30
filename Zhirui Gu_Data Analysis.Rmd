@@ -74,3 +74,44 @@ ggplot(aq_data, aes(x = GroundCO)) +
 # boxplot for all numerical variable, check outliers
 # replace all missing value with median
 ```
+
+```{r}
+aq_1 <- aq_data %>%
+  mutate(across(where(is.numeric),
+                ~ ifelse(is.na(.), median(., na.rm = TRUE), .)))
+```
+
+```{r}
+num <- aq_1 %>%
+  select(where(is.numeric)) %>%
+  pivot_longer(everything(), names_to = "var", values_to = "val")
+ggplot(num, aes(x = var, y = val)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_classic()
+
+outlier_summary <- num %>%
+  group_by(var) %>%
+  mutate(q1  = quantile(val, .25, na.rm = TRUE),
+         q3  = quantile(val, .75, na.rm = TRUE),
+         iqr = q3 - q1,
+         lo  = q1 - 1.5*iqr,
+         hi  = q3 + 1.5*iqr,
+         is_outlier = val < lo | val > hi) %>%
+  summarise(n = n(),
+            n_outliers = sum(is_outlier, na.rm = TRUE),
+            prop_outliers = n_outliers / n)
+
+outlier_summary
+
+aq_no_outliers <- aq_1 %>%
+  filter(if_all(where(is.numeric), ~ {
+    qs  <- quantile(., c(.25, .75), na.rm = TRUE)
+    iqr <- diff(qs)
+    lo  <- qs[1] - 1.5*iqr
+    hi  <- qs[2] + 1.5*iqr
+    is.na(.) | (. >= lo & . <= hi)
+  }))
+
+cat("removed rows:", nrow(aq_1) - nrow(aq_no_outliers), "\n")
+```
