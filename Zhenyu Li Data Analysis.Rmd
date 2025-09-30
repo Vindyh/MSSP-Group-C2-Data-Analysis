@@ -1,0 +1,107 @@
+---
+title: "Data Analysis - MSSP Group C2 Fall 2025"
+author: "Zhenyu Li"
+date: "2025-09-23"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+set.seed(42)
+```
+
+## Purpose and Dataset
+
+We will look:
+
+-   How one should approach a dataset
+-   What are the steps followed in analyzing a dataset
+
+Goal. Explore the AirQuality dataset (hourly averages, March 2004–Feb 2005) to:
+
+-   understand structure & quality,
+-   handle missing values,
+-   do basic EDA (trends, correlations, drift),
+-   build a simple model for a target variable (e.g., CO).
+
+### Why these steps?
+
+Good analysis = (1) clean data → (2) understand patterns → (3) model carefully. Each step documents decisions so results are reproducible and defensible.
+
+### Libraries and Project Setup
+
+Use this space to install and store all the packages.
+
+```{r packages, echo=TRUE, message=FALSE}
+# Install once if needed and comment it out
+# install.packages(c("tidyverse","dplyr", GGally", "ggplot2"))
+library(tidyverse)
+library(dplyr)
+library(GGally) 
+library(ggplot2)
+```
+
+### Import Data
+
+```{r}
+airqual <- read.csv("AirQualityData.csv", sep=";")
+airqual
+summary(airqual)
+```
+
+Read the DataDescription.txt and note important information. Read it thoroughly!
+
+## Clean & Reorganize Data
+
+```{r}
+airqual <- read.csv("AirQualityData.csv", sep=";")
+# Replace missing values with NA
+airqual[airqual == -200] <- NA
+
+# Rename variables
+airqual <- rename(airqual, GroundCO=CO.GT., SensorCO=PT08.S1.CO. , GroundNMHC=NMHC.GT., GroundC6H6=C6H6.GT., SensorNMHC=PT08.S2.NMHC., GroundNOx=NOx.GT., SensorNOx=PT08.S3.NOx., GroundNO2=NO2.GT., SensorNO2=PT08.S4.NO2., SensorO3=PT08.S5.O3.)
+
+# Use an unified units for Humidity
+airqual$RelativeHumidity <- airqual$RelativeHumidity/100
+```
+
+Create a box plot for each variable
+
+There is great variation in values between some columns so I only plot columns with similar values.
+
+## Visualize & Explore the Data
+
+For the purpose of this section, replace all NA with the median of the respective column
+
+```{r}
+airqual %>% 
+  mutate(across(where(is.numeric), ~ifelse(is.na(.), median(., na.rm=T),.)))
+```
+
+```{r}
+airqual[,c(4,7,9,11,12)] %>% 
+  pivot_longer(everything(), values_to="Value", names_to = "Variable") %>%
+  ggplot() +
+  geom_boxplot(aes(x=Variable, y=Value)) +
+  labs(title="Sensor")
+```
+
+```{r}
+airqual[,c(14,15)] %>% 
+  pivot_longer(everything(), values_to="Value", names_to = "Variable") %>%
+  ggplot() +
+  geom_boxplot(aes(x=Variable, y=Value))
+```
+
+```{r}
+ggplot(airqual) +
+  aes(y=Temperature) +
+  geom_boxplot()
+
+```
+
+Create a pairplot for all sensor data
+
+```{r}
+ggpairs(airqual[,c(4,7,9,11,12)])
+```
